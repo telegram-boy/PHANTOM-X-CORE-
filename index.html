@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>X≈X</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1b2340">
+<link rel="icon" href="icon-192.png">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
+<style>
+:root{--bg:#1b2340;--surf:#26305a;--theirs:#323d6e;--sand:#f0c987;--ink:#eef1ff;--mute:#9aa6d0;--err:#ff9b8a}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+[hidden]{display:none!important}
+button:disabled{opacity:.5;cursor:not-allowed}
+#login{display:flex;flex-direction:column;gap:14px;height:100%;overflow-y:auto;padding:28px;max-width:420px;margin:0 auto}
+#login>:first-child{margin-top:auto}
+#login>:last-child{margin-bottom:auto}
+h1{font:600 2rem/1.1 Georgia,"Times New Roman",serif;letter-spacing:-.01em}
+p.sub{color:var(--mute);margin-bottom:6px}
+label{font-size:.85rem;color:var(--mute)}
+input{width:100%;padding:13px 14px;border-radius:10px;border:1px solid #3d4a85;background:var(--surf);color:var(--ink);font-size:1rem}
+input:focus-visible,button:focus-visible{outline:2px solid var(--sand);outline-offset:2px}
+button{border:0;border-radius:10px;padding:13px 18px;font-size:1rem;font-weight:600;background:var(--sand);color:#2a2210;cursor:pointer}
+.tabs{display:flex;gap:8px}
+.tabs button{flex:1;background:var(--surf);color:var(--mute)}
+.tabs .on{background:var(--sand);color:#2a2210}
+#err{color:var(--err);min-height:1.4em;font-size:.9rem}
+.charte{font-size:.82rem;color:var(--mute);border-left:3px solid var(--sand);padding-left:10px}
+.chk{display:flex;align-items:center;gap:10px;font-size:.9rem;color:var(--ink)}
+.chk input{width:auto;padding:0;accent-color:#f0c987}
+.foot{font-size:.72rem;color:var(--mute);line-height:1.6}
+.foot a{color:var(--sand)}
+#chat{display:flex;flex-direction:column;height:100%}
+header{padding:10px 14px 8px;background:var(--surf)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+#who{font-weight:600}
+#st{font-size:.8rem;color:var(--mute)}
+#st.tap{text-decoration:underline;cursor:pointer}
+#plist{font-size:.8rem;color:var(--ink);margin-top:6px;max-height:90px;overflow-y:auto;line-height:1.6}
+#quit{background:transparent;color:var(--mute);padding:6px 10px;font-weight:500;border:1px solid #3d4a85}
+#sand{height:4px;background:#3d4a85;border-radius:2px;margin-top:8px;overflow:hidden}
+#sand i{display:block;height:100%;width:100%;background:var(--sand);transition:width 1s linear}
+#cd{font-size:.75rem;color:var(--mute);margin-top:4px}
+#log{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px}
+.m{max-width:82%;padding:9px 13px;border-radius:16px;word-wrap:break-word;white-space:pre-wrap}
+.me{align-self:flex-end;background:var(--sand);color:#2a2210;border-bottom-right-radius:4px}
+.th{align-self:flex-start;background:var(--theirs);border-bottom-left-radius:4px}
+.sys{align-self:center;color:var(--mute);font-size:.8rem;text-align:center;padding:4px 10px}
+.nm{display:block;font-size:.72rem;font-weight:600;opacity:.75}
+.m img{display:block;max-width:100%;border-radius:10px}
+form{display:flex;gap:8px;padding:10px 12px;background:var(--surf)}
+form input{flex:1;min-width:0}
+#ph{padding:13px 14px;background:var(--theirs);color:var(--ink)}
+</style>
+</head>
+<body>
+<section id="login">
+  <h1>X≈X</h1>
+  <p class="sub">Discussion chiffrée. Salon privé : effacement toutes les 2 h. Salle : toutes les 24 h.</p>
+  <div class="tabs"><button type="button" id="t1" class="on">Salon privé</button><button type="button" id="t2">Salle</button></div>
+  <div><label for="pseudo">Ton pseudo</label><input id="pseudo" maxlength="20" autocomplete="off"></div>
+  <div><label for="code" id="lc">Code secret partagé (choisissez-le ensemble)</label><input id="code" type="password" autocomplete="off"></div>
+  <div id="err" role="alert"></div>
+  <p class="charte">X≈X sert à échanger dans le respect et la confiance. Sont interdits : le harcèlement, les menaces, les arnaques et tout contenu illégal. Tu es responsable de ce que tu envoies.</p>
+  <label class="chk"><input type="checkbox" id="ok"> J’accepte la charte d’utilisation</label>
+  <button id="go" disabled>Ouvrir la discussion</button>
+  <button id="nt" type="button" style="background:transparent;color:var(--mute);border:1px solid #3d4a85;font-weight:500">Tester le réseau</button>
+  <div id="diag" style="font-size:.85rem;color:var(--mute);min-height:1.4em"></div>
+  <div class="foot">© 2026 GNACADJA MARIE SAMUEL · X≈X · Tous droits réservés.<br>Une question, un problème, un signalement ? <a href="https://wa.me/2250789247884" target="_blank" rel="noopener">WhatsApp</a> · <a href="mailto:mariesamuelgnacadja@gmail.com">E-mail</a><br>version 7</div>
+</section>
+
+<section id="chat" hidden>
+  <header>
+    <div class="row"><div><div id="who">Salon privé</div><div id="st">Connexion…</div></div><button id="quit">Quitter</button></div>
+    <div id="plist" hidden></div>
+    <div id="sand"><i id="bar"></i></div>
+    <div id="cd"></div>
+  </header>
+  <div id="log" aria-live="polite"></div>
+  <form id="f"><input id="txt" placeholder="Écrire un message" autocomplete="off" disabled><button type="button" id="ph" disabled aria-label="Envoyer une photo">📷</button><button id="send" disabled>Envoyer</button><input type="file" id="fi" accept="image/*" hidden></form>
+</section>
+
+<script>
+const $=id=>document.getElementById(id);
+const te=new TextEncoder(),td=new TextDecoder();
+const PURGE=2*60*60*1000,PURGE_R=24*60*60*1000,MAX=50;
+const per=()=>mode==='r'?PURGE_R:PURGE;
+let key,peer,conn,me,other="",purgeAt=0,mode='p',seen=0,urls=[],lastPhoto=0;
+let hosting=false,members=new Map(),names=[],hostId,freq,left=false;
+const CFG={config:{iceServers:[
+  {urls:"stun:stun.relay.metered.ca:80"},
+  {urls:"stun:stun.l.google.com:19302"},
+  {urls:"turn:global.relay.metered.ca:80",username:"5494ca073e79e28725f8f6f0",credential:"Kv1mWnSMB19d0Qds"},
+  {urls:"turn:global.relay.metered.ca:80?transport=tcp",username:"5494ca073e79e28725f8f6f0",credential:"Kv1mWnSMB19d0Qds"},
+  {urls:"turn:global.relay.metered.ca:443",username:"5494ca073e79e28725f8f6f0",credential:"Kv1mWnSMB19d0Qds"},
+  {urls:"turns:global.relay.metered.ca:443?transport=tcp",username:"5494ca073e79e28725f8f6f0",credential:"Kv1mWnSMB19d0Qds"},
+  {urls:"turn:standard.relay.metered.ca:80",username:"5494ca073e79e28725f8f6f0",credential:"Kv1mWnSMB19d0Qds"},
+  {urls:"turn:standard.relay.metered.ca:443",username:"5494ca073e79e28725f8f6f0",credential:"Kv1mWnSMB19d0Qds"},
+  {urls:"turns:standard.relay.metered.ca:443?transport=tcp",username:"5494ca073e79e28725f8f6f0",credential:"Kv1mWnSMB19d0Qds"}
+]}};
+
+const b64=b=>{const u=new Uint8Array(b);let s='';for(let i=0;i<u.length;i+=8192)s+=String.fromCharCode.apply(null,u.subarray(i,i+8192));return btoa(s)};
+const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+
+async function derive(code){
+  const base=await crypto.subtle.importKey('raw',te.encode(code),'PBKDF2',false,['deriveKey','deriveBits']);
+  const p=salt=>({name:'PBKDF2',salt:te.encode(salt),iterations:200000,hash:'SHA-256'});
+  key=await crypto.subtle.deriveKey(p('sablier-key-v1'),base,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+  const bits=await crypto.subtle.deriveBits(p('sablier-room-v1'),base,128);
+  return [...new Uint8Array(bits)].map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+async function seal(obj){
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,te.encode(JSON.stringify(obj)));
+  return {iv:b64(iv),ct:b64(ct)};
+}
+async function open(d){
+  const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:unb64(d.iv)},key,unb64(d.ct));
+  return JSON.parse(td.decode(pt));
+}
+
+function status(t){$('st').textContent=t}
+function enable(on){['txt','send','ph'].forEach(i=>$(i).disabled=!on)}
+function push(el){const log=$('log');log.appendChild(el);log.scrollTop=log.scrollHeight}
+function bubble(cls,name){
+  const el=document.createElement('div');el.className='m '+cls;
+  if(name){const b=document.createElement('b');b.className='nm';b.textContent=name;el.append(b)}
+  return el;
+}
+function add(cls,text,name){const el=bubble(cls,name);el.append(text);push(el)}
+function addImg(cls,buf,type,name){
+  const u=URL.createObjectURL(new Blob([buf],{type}));urls.push(u);
+  const el=bubble(cls,name),i=document.createElement('img');i.src=u;i.alt='Photo';el.append(i);push(el);
+}
+const sys=t=>{const el=document.createElement('div');el.className='sys';el.textContent=t;push(el)};
+
+function show(m){
+  const nm=mode==='r'?m.n:'';
+  if(m.k==='m'&&typeof m.t==='string')add('th',m.t,nm);
+  else if(m.k==='i'&&typeof m.d==='string'&&m.d.length<8e5&&m.y==='image/jpeg')addImg('th',unb64(m.d).buffer,m.y,nm);
+}
+async function startClock(){
+  purgeAt=Date.now()+PURGE_R;
+  const s=await seal({k:'clock',t:purgeAt});
+  members.forEach(x=>x.c.open&&x.c.send(s));
+}
+async function out(p){
+  if(mode==='r'&&hosting&&!purgeAt&&(p.k==='m'||p.k==='i'))await startClock();
+  const s=await seal(p);
+  if(mode==='r'&&hosting)members.forEach(x=>x.c.open&&x.c.send(s));
+  else if(conn&&conn.open)conn.send(s);
+}
+const canSend=()=>mode==='r'?(hosting||(conn&&conn.open)):(conn&&conn.open);
+
+/* ---------- Salon privé ---------- */
+function setupP(c){
+  if(conn&&conn.open){c.close();return}
+  conn=c;
+  const ipc=c.peerConnection;
+  if(ipc)ipc.oniceconnectionstatechange=()=>{if(ipc.iceConnectionState==='failed')status('Échec de connexion réseau (ICE).')};
+  const ready=()=>{
+    enable(true);seen=Date.now();purgeAt=Date.now()+PURGE;
+    sys('Connecté. Les messages sont chiffrés sur ton téléphone avant l’envoi.');
+    seal({k:'hi',n:me}).then(p=>c.send(p));
+  };
+  c.open?ready():c.on('open',ready);
+  c.on('data',async d=>{
+    if(d.p){seen=Date.now();return}
+    try{const m=await open(d);if(m.k==='hi'){other=m.n;$('who').textContent=other}else show(m)}
+    catch{sys('Message illisible ignoré.')}
+  });
+  c.on('close',()=>{
+    if(conn!==c)return;
+    conn=null;enable(false);status('⚪ '+(other||'Interlocuteur')+' hors ligne');sys('L’autre personne est partie.');
+  });
+}
+function startP(room){
+  const id1='sab'+room,id2=id1+'b';
+  peer=new Peer(id1,CFG);
+  peer.on('open',()=>status('En attente de l’autre personne…'));
+  peer.on('connection',setupP);
+  peer.on('error',e=>{
+    if(e.type==='unavailable-id'){
+      peer.destroy();
+      peer=new Peer(id2,CFG);
+      peer.on('open',()=>{status('Connexion…');const c=peer.connect(id1,{reliable:true});setupP(c);setTimeout(()=>{if(!c.open)status('Connexion impossible : réseau bloqué. Quitte et réessaie.')},25000)});
+      peer.on('error',e2=>status(e2.type==='unavailable-id'?'Salon complet (2 personnes max).':'Erreur réseau : '+e2.type));
+    }else status('Erreur réseau : '+e.type);
+  });
+}
+
+/* ---------- Salle (le premier arrivé est l’hôte) ---------- */
+function updCount(list){
+  names=list;
+  $('st').textContent='🟢 '+list.length+' actif / '+MAX+' ▾';
+  $('plist').textContent=list.join(' · ');
+}
+async function pushRoster(){
+  const list=[me,...[...members.values()].map(x=>x.n)];
+  const s=await seal({k:'roster',l:list,t:purgeAt});
+  members.forEach(x=>x.c.open&&x.c.send(s));
+  updCount(list);
+}
+function tryHost(){
+  if(peer)peer.destroy();
+  peer=new Peer(hostId,CFG);
+  peer.on('open',()=>{hosting=true;members.clear();enable(true);updCount([me])});
+  peer.on('connection',hostAccept);
+  peer.on('error',e=>{
+    if(e.type==='unavailable-id'){peer.destroy();joinHost()}
+    else status('Erreur réseau : '+e.type);
+  });
+}
+function joinHost(){
+  hosting=false;
+  peer=new Peer(undefined,CFG);
+  peer.on('open',()=>{
+    const c=peer.connect(hostId,{reliable:true});conn=c;
+    c.on('open',async()=>{seen=Date.now();c.send(await seal({k:'join',n:me}))});
+    c.on('data',onMember);
+    c.on('close',()=>{if(conn===c)hostLost()});
+    setTimeout(()=>{if(!c.open&&conn===c)status('Connexion impossible : réseau bloqué. Quitte et réessaie.')},25000);
+  });
+  peer.on('error',e=>status('Erreur réseau : '+e.type));
+}
+function hostAccept(c){
+  c.on('data',async d=>{
+    if(d.p){const x=members.get(c.peer);if(x)x.seen=Date.now();return}
+    let m;try{m=await open(d)}catch{return}
+    if(m.k==='join'){
+      if(members.size+1>=MAX){c.send(await seal({k:'full'}));setTimeout(()=>c.close(),500);return}
+      let n=String(m.n||'Anonyme').slice(0,20),i=2;const base=n;
+      const taken=()=>n===me||[...members.values()].some(x=>x.n===n);
+      while(taken())n=base+i++;
+      members.set(c.peer,{c,n,seen:Date.now()});
+      c.send(await seal({k:'welcome',n}));
+      await pushRoster();sys(n+' est entré(e)');
+    }else if(members.has(c.peer)){
+      members.forEach((x,id)=>{if(id!==c.peer&&x.c.open)x.c.send(d)});
+      if(!purgeAt&&(m.k==='m'||m.k==='i'))startClock();
+      show(m);
+    }
+  });
+  c.on('close',()=>{const x=members.get(c.peer);if(x){members.delete(c.peer);pushRoster();sys(x.n+' est parti(e)')}});
+}
+async function onMember(d){
+  if(d.p){seen=Date.now();return}
+  let m;try{m=await open(d)}catch{return}
+  if(m.k==='welcome'){me=m.n;enable(true)}
+  else if(m.k==='roster'){updCount(m.l);if(m.t)purgeAt=m.t}
+  else if(m.k==='clock')purgeAt=m.t;
+  else if(m.k==='full'){left=true;enable(false);status('Salle pleine ('+MAX+'/'+MAX+').')}
+  else show(m);
+}
+function hostLost(){
+  conn=null;enable(false);if(left)return;
+  sys('L’hôte est parti. Reconnexion…');
+  const r=Math.max(1,names.indexOf(me));
+  setTimeout(tryHost,(r-1)*2500+300);
+}
+
+/* ---------- Boucle commune ---------- */
+function tick(){
+  if(mode==='p'&&conn&&purgeAt){
+    const on=conn.open&&Date.now()-seen<25000;
+    status((on?'🟢 ':'⚪ ')+(other||'Interlocuteur')+(on?' en ligne · chiffré':' hors ligne'));
+  }
+  if(mode==='r'&&!hosting&&conn&&conn.open&&Date.now()-seen>30000){const c=conn;conn=null;c.close();hostLost()}
+  if(!purgeAt){$('cd').textContent=mode==='r'?'Le minuteur de 24 h démarre au premier message.':'Le minuteur démarre à la connexion.';$('bar').style.width='100%';return}
+  let left_=purgeAt-Date.now();
+  if(left_<=0){
+    $('log').innerHTML='';urls.forEach(u=>URL.revokeObjectURL(u));urls=[];
+    if(mode==='r'){purgeAt=0;sys('Salle effacée (24 h écoulées). Le minuteur repart au prochain message.');return}
+    purgeAt+=PURGE;left_=purgeAt-Date.now();sys('Discussion effacée (toutes les 2 h).');
+  }
+  $('bar').style.width=(left_/per()*100)+'%';
+  const s=Math.ceil(left_/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60),r=s%60;
+  $('cd').textContent='Effacement dans '+h+' h '+String(m).padStart(2,'0')+' min '+String(r).padStart(2,'0')+' s';
+}
+function beat(){
+  if(mode==='r'&&hosting){
+    const now=Date.now();
+    members.forEach((x,id)=>{
+      if(now-x.seen>25000){x.c.close();members.delete(id);pushRoster()}
+      else if(x.c.open)x.c.send({p:1});
+    });
+  }else if(conn&&conn.open)conn.send({p:1});
+}
+
+/* ---------- Écran d’accueil ---------- */
+function tab(m){
+  mode=m;$('t1').classList.toggle('on',m==='p');$('t2').classList.toggle('on',m==='r');
+  $('lc').textContent=m==='p'?'Code secret partagé (choisissez-le ensemble)':'Fréquence de la salle (001 à 999)';
+  const c=$('code');c.type=m==='p'?'password':'text';c.inputMode=m==='p'?'text':'numeric';c.maxLength=m==='p'?100:3;c.value='';
+}
+$('t1').onclick=()=>tab('p');$('t2').onclick=()=>tab('r');
+$('ok').onchange=()=>{$('go').disabled=!$('ok').checked};
+$('go').onclick=async()=>{
+  const p=$('pseudo').value.trim(),c=$('code').value.trim();
+  if(mode==='p'){
+    if(!p||c.length<8){$('err').textContent='Entre un pseudo et un code de 8 caractères minimum.';return}
+  }else{
+    const n=+c;
+    if(!p||!/^\d{1,3}$/.test(c)||n<1||n>999){$('err').textContent='Entre un pseudo et une fréquence entre 001 et 999.';return}
+    freq=String(n).padStart(3,'0');
+  }
+  $('err').textContent='';$('go').disabled=true;$('go').textContent='Chiffrement…';
+  me=p;
+  const room=await derive(mode==='p'?c:'salle-'+freq);
+  $('login').hidden=true;$('chat').hidden=false;
+  if(mode==='p')startP(room);
+  else{
+    hostId='xxapp-salle-'+freq;$('who').textContent='Salle '+freq;
+    $('st').classList.add('tap');$('st').onclick=()=>{$('plist').hidden=!$('plist').hidden};
+    purgeAt=0;
+    status('Connexion à la salle…');tryHost();
+  }
+  setInterval(tick,1000);setInterval(beat,8000);tick();
+};
+$('f').onsubmit=async e=>{
+  e.preventDefault();
+  const t=$('txt').value.trim();
+  if(!t||!canSend())return;
+  await out({k:'m',n:me,t});add('me',t);$('txt').value='';
+};
+$('ph').onclick=()=>$('fi').click();
+$('fi').onchange=async e=>{
+  const f=e.target.files[0];e.target.value='';
+  if(!f||!canSend())return;
+  if(mode==='r'&&Date.now()-lastPhoto<10000){sys('Attends quelques secondes entre deux photos.');return}
+  try{
+    const bm=await createImageBitmap(f),k=Math.min(1,800/Math.max(bm.width,bm.height));
+    const cv=document.createElement('canvas');cv.width=Math.round(bm.width*k);cv.height=Math.round(bm.height*k);
+    cv.getContext('2d').drawImage(bm,0,0,cv.width,cv.height);
+    const blob=await new Promise(r=>cv.toBlob(r,'image/jpeg',.6));
+    const buf=await blob.arrayBuffer();lastPhoto=Date.now();
+    await out({k:'i',n:me,d:b64(buf),y:'image/jpeg'});addImg('me',buf,'image/jpeg');
+  }catch{sys('Photo impossible à envoyer.')}
+};
+$('quit').onclick=()=>{left=true;if(peer)peer.destroy();key=null;location.reload()};
+
+async function netTest(){
+  const out_=$('diag');out_.textContent='Test en cours (10 s)…';$('nt').disabled=true;
+  const found={host:0,srflx:0,relay:0};
+  try{
+    const pc=new RTCPeerConnection({iceServers:CFG.config.iceServers});
+    pc.createDataChannel('t');
+    pc.onicecandidate=e=>{if(e.candidate){const m=/ typ (\w+)/.exec(e.candidate.candidate);if(m&&m[1] in found)found[m[1]]++}};
+    await pc.setLocalDescription(await pc.createOffer());
+    await new Promise(r=>setTimeout(r,10000));
+    pc.close();
+    out_.textContent='Relais : '+(found.relay?'OK':'NON')+' · Internet (STUN) : '+(found.srflx?'OK':'NON')+' · Local : '+(found.host?'OK':'NON');
+  }catch(e){out_.textContent='Test impossible : '+e.message}
+  $('nt').disabled=false;
+}
+$('nt').onclick=netTest;
+if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
+</body>
+</html>
